@@ -147,7 +147,13 @@ function loadAllSelections() {
       allSelections = json.table.rows
         .filter(function(r) { return r.c && r.c[0] && r.c[0].v; })
         .map(function(r) {
-          var cells = r.c.map(function(c) { return (c && c.v) ? String(c.v).trim() : ''; });
+          var cells = r.c.map(function(cell) {
+            if (!cell || (cell.v === null && cell.v === undefined)) return '';
+            // Use formatted value 'f' if available (handles Date objects properly)
+            // Fall back to raw value 'v'
+            var val = (cell.f !== undefined && cell.f !== null) ? cell.f : cell.v;
+            return String(val).trim();
+          });
           var songs = [];
           for (var i = 3; i < cells.length; i += 2) {
             if (cells[i]) songs.push({ title: cells[i], lyrics: cells[i+1] || '' });
