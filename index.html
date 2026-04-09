@@ -662,6 +662,7 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 // STATE
 // ============================================================
 let allSongs = [];       // [{title, lyrics}, ...]
+let cachedOptions = '';  // Pre-built <option> HTML
 let slotCount = 0;
 let searchMode = 'title'; // 'title' | 'lyric'
 
@@ -721,10 +722,7 @@ async function loadSongs() {
 
     const text = await response.text();
     // Google wraps JSON in a callback — strip it
-    // Google wraps response as: /*O_o*/\ngoogle.visualization.Query.setResponse({...});
-    const jsonStart = text.indexOf('(') + 1;
-    const jsonEnd = text.lastIndexOf(')');
-    const json = JSON.parse(text.substring(jsonStart, jsonEnd));
+    const json = JSON.parse(text.replace(/^.*?({.*}).*$/s, '$1'));
     const rows = json.table.rows;
 
     allSongs = rows
@@ -734,6 +732,11 @@ async function loadSongs() {
         lyrics: row.c[1] ? String(row.c[1].v).trim() : ''
       }))
       .sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+
+    // Build options HTML once — reused by every slot
+    cachedOptions = allSongs.map(s =>
+      `<option value="${escHtml(s.title)}">${escHtml(s.title)}</option>`
+    ).join('');
 
     setStatus('ready', `${allSongs.length} songs loaded`);
     container.innerHTML = '';
@@ -773,10 +776,7 @@ function addSongSlot(preselect = null) {
   div.className = 'song-slot';
   div.id = `slot-${id}`;
 
-  // Build select options
-  const options = allSongs.map(s =>
-    `<option value="${escHtml(s.title)}">${escHtml(s.title)}</option>`
-  ).join('');
+  const options = cachedOptions;
 
   div.innerHTML = `
     <div class="slot-header">
@@ -977,9 +977,10 @@ async function saveNewSong() {
 }
 
 function refreshAllDropdowns() {
-  const options = allSongs.map(s =>
+  cachedOptions = allSongs.map(s =>
     `<option value="${escHtml(s.title)}">${escHtml(s.title)}</option>`
   ).join('');
+  const options = cachedOptions;
 
   document.querySelectorAll('.slot-select').forEach(sel => {
     const current = sel.value;
