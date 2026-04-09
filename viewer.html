@@ -139,7 +139,7 @@ function loadAllSelections() {
       return res.text();
     })
     .then(function(text) {
-      var start = text.indexOf('{'); var end = text.lastIndexOf('}') + 1; var json = JSON.parse(text.substring(start, end));
+      var json = JSON.parse(text.replace(/^[\s\S]*?({[\s\S]*})[\s\S]*$/, '$1'));
       if (!json.table || !json.table.rows) {
         document.getElementById('resultsArea').innerHTML = '<div class="state-msg">No submissions yet.</div>';
         return;
@@ -148,11 +148,31 @@ function loadAllSelections() {
         .filter(function(r) { return r.c && r.c[0] && r.c[0].v; })
         .map(function(r) {
           var cells = r.c.map(function(cell) {
-            if (!cell || (cell.v === null && cell.v === undefined)) return '';
-            // Use formatted value 'f' if available (handles Date objects properly)
-            // Fall back to raw value 'v'
-            var val = (cell.f !== undefined && cell.f !== null) ? cell.f : cell.v;
-            return String(val).trim();
+            if (!cell || cell.v === null || cell.v === undefined) return '';
+            var raw = String(cell.v).trim();
+            // Google returns dates as "Date(yyyy,m,d)" and datetimes as "Date(yyyy,m,d,h,min,s)"
+            // Convert these to readable strings
+            var dateMatch = raw.match(/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)$/);
+            if (dateMatch) {
+              var yr  = parseInt(dateMatch[1]);
+              var mo  = parseInt(dateMatch[2]) + 1; // Google months are 0-based
+              var dy  = parseInt(dateMatch[3]);
+              if (dateMatch[4] !== undefined) {
+                // Has time component
+                var hr  = parseInt(dateMatch[4]);
+                var mn  = parseInt(dateMatch[5]);
+                var sc  = parseInt(dateMatch[6]);
+                var ampm = hr >= 12 ? 'PM' : 'AM';
+                var hr12 = hr % 12 || 12;
+                return mo + '/' + dy + '/' + yr + ', ' + hr12 + ':' + String(mn).padStart(2,'0') + ':' + String(sc).padStart(2,'0') + ' ' + ampm;
+              }
+              // Date only
+              var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+              var days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+              var dateObj = new Date(yr, parseInt(dateMatch[2]), dy);
+              return days[dateObj.getDay()] + ', ' + months[parseInt(dateMatch[2])] + ' ' + dy + ', ' + yr;
+            }
+            return raw;
           });
           var songs = [];
           for (var i = 3; i < cells.length; i += 2) {
