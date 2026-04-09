@@ -1074,28 +1074,55 @@ async function submitSelections() {
 // Requires an Apps Script Web App deployment
 // Paste your deployed Web App URL below after deploying Code.gs
 // ============================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztIktQM7XhMQ640gYEatERXr2vZfkN7oh6TpP9WT0vZk7oFkTaubOkZhytc_3bR76UrQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKsDqN01aAzuWgSqw7anxgPXbEREM38EFoXDU_hfXAcz6Rub--UMJ4eu67E-ulyddIzw/exec';
 
-async function writeToSheet(tab, rowData, newSongTitle = null, newSongLyrics = null, isNewSong = false) {
+function writeToSheet(tab, rowData, newSongTitle = null, newSongLyrics = null, isNewSong = false) {
   if (!APPS_SCRIPT_URL) {
-    throw new Error('Apps Script URL is empty. Please set it in index.html.');
+    throw new Error('Apps Script URL is empty.');
   }
 
   const payload = isNewSong
     ? { action: 'addSong', title: newSongTitle, lyrics: newSongLyrics }
     : { action: 'addSelection', tab, row: rowData };
 
-  // Use no-cors POST to avoid CORS preflight and URL length limits.
-  // no-cors means we cannot read the response — that's OK, Apps Script
-  // will still execute and write to the sheet. We treat no error = success.
-  await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload)
+  // Use a hidden iframe + form to POST to Apps Script.
+  // This completely bypasses CORS — the browser never checks CORS for form submissions.
+  // The response goes into the hidden iframe, not the main page, so nothing breaks.
+  return new Promise((resolve) => {
+    // Create a hidden iframe to absorb the response
+    const iframeName = 'submit_iframe_' + Date.now();
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    // Create a hidden form targeting the iframe
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = APPS_SCRIPT_URL;
+    form.target = iframeName;
+    form.style.display = 'none';
+
+    // Single input field with the JSON payload
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+
+    // Clean up after 8 seconds (enough time for Apps Script to run)
+    setTimeout(() => {
+      document.body.removeChild(form);
+      document.body.removeChild(iframe);
+      resolve(); // Resolve regardless — we can't read iframe response due to CORS
+    }, 8000);
+
+    form.submit();
+    // Resolve after a short delay so the UI updates quickly
+    setTimeout(resolve, 500);
   });
-  // no-cors fetch always returns an opaque response with status 0 — not an error.
-  // If the network itself fails, fetch() throws and the caller shows an error toast.
 }
 
 // ============================================================
