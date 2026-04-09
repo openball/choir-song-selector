@@ -1077,8 +1077,8 @@ async function submitSelections() {
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzmkh5qyeaL3ok4Y4MdsDvs09GA4DLkuTi1U1aUSjTp6WLkHnGrH-Rza3ztVNWafWh/exec';
 
 async function writeToSheet(tab, rowData, newSongTitle = null, newSongLyrics = null, isNewSong = false) {
-  if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyzmkh5qyeaL3ok4Y4MdsDvs09GA4DLkuTi1U1aUSjTp6WLkHnGrH-Rza3ztVNWafWh/exec') {
-    throw new Error('Apps Script URL not configured. Please paste your Web App URL into index.html (search for APPS_SCRIPT_URL).');
+  if (!APPS_SCRIPT_URL) {
+    throw new Error('Apps Script URL is empty. Please set it in index.html.');
   }
 
   const payload = isNewSong
