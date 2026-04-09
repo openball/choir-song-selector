@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Choir Song Selector</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,17 +57,14 @@
   .btn { font-family: Arial, sans-serif; font-size: 0.82rem; font-weight: bold; padding: 0.6rem 1.2rem; border-radius: 3px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
   .btn-ghost { background: #fff; border: 1px solid #ccc; color: #111; }
   .btn-ghost:hover { border-color: #000; background: #f5f5f5; }
-  .btn-gold { background: #000; color: #fff; border: 1px solid #000; }
-  .btn-gold:hover { background: #333; }
-  .btn-gold:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-green { background: #000; color: #fff; border: 1px solid #000; }
-  .btn-green:hover { background: #333; }
-  .btn-green:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-black { background: #000; color: #fff; border: 1px solid #000; }
+  .btn-black:hover { background: #333; }
+  .btn-black:disabled { opacity: 0.4; cursor: not-allowed; }
   .actions-row { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-top: 0.5rem; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; padding: 1rem; }
   .modal-overlay.open { display: flex; }
   .modal { background: #fff; border: 2px solid #000; border-radius: 4px; padding: 1.8rem; width: 100%; max-width: 500px; }
-  .modal-title { font-family: Georgia, serif; font-size: 1.1rem; color: #000; margin-bottom: 1.1rem; font-weight: bold; }
+  .modal-title { font-family: Georgia, serif; font-size: 1.1rem; margin-bottom: 1.1rem; font-weight: bold; }
   .modal-field { margin-bottom: 0.9rem; }
   .modal-field label { display: block; font-family: Arial, sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: #666; margin-bottom: 0.3rem; }
   .modal-field input, .modal-field textarea { width: 100%; background: #fff; border: 1px solid #ccc; border-radius: 3px; padding: 0.6rem 0.8rem; color: #111; font-family: Arial, sans-serif; font-size: 0.9rem; outline: none; }
@@ -87,41 +85,35 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
-  <div class="logo"><span>🎵</span> Choir Song Selector</div>
+  <div class="logo">🎵 Choir Song Selector</div>
   <div class="header-status">
     <div class="status-dot loading" id="statusDot"></div>
     <span id="statusText">Loading songs...</span>
   </div>
 </header>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- ADD NEW SONG MODAL -->
 <div class="modal-overlay" id="addSongModal">
   <div class="modal">
-    <div class="modal-title">✦ Add New Song</div>
+    <div class="modal-title">Add New Song</div>
     <div class="modal-field">
       <label>Song Title *</label>
       <input type="text" id="newSongTitle" placeholder="Enter song title...">
     </div>
     <div class="modal-field">
       <label>Lyrics *</label>
-      <textarea id="newSongLyrics" placeholder="Paste lyrics here...&#10;&#10;Use blank lines to separate verses."></textarea>
+      <textarea id="newSongLyrics" placeholder="Paste lyrics here..."></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeAddSongModal()">Cancel</button>
-      <button class="btn btn-gold" id="saveNewSongBtn" onclick="saveNewSong()">💾 Save Song</button>
+      <button class="btn btn-black" id="saveNewSongBtn" onclick="saveNewSong()">Save Song</button>
     </div>
   </div>
 </div>
 
-<!-- MAIN -->
 <main>
-
-  <!-- MEMBER INFO -->
   <div class="section-title">Member Information</div>
   <div class="card">
     <div class="form-row">
@@ -136,9 +128,8 @@
     </div>
   </div>
 
-  <!-- SEARCH -->
   <div class="section-title">Search Songs</div>
-  <div style="position:relative" id="searchContainer">
+  <div style="position:relative">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" placeholder="Search by title or lyrics..." autocomplete="off">
@@ -152,213 +143,114 @@
 
   <div class="divider"></div>
 
-  <!-- SONG SLOTS -->
   <div class="section-title">Selected Songs</div>
   <div id="slotsContainer"></div>
 
   <div class="actions-row">
-    <button class="btn btn-ghost" onclick="addSongSlot()">＋ Add Another Song</button>
-    <button class="btn btn-ghost" onclick="openAddSongModal()">✦ Add New Song to Library</button>
+    <button class="btn btn-ghost" onclick="addSongSlot()">+ Add Another Song</button>
+    <button class="btn btn-ghost" onclick="openAddSongModal()">+ Add New Song to Library</button>
   </div>
 
   <div class="divider"></div>
 
-  <!-- SUBMIT -->
   <div style="display:flex; justify-content:flex-end;">
-    <button class="btn btn-green" id="submitBtn" onclick="submitSelections()" style="font-size:0.95rem; padding:0.85rem 2rem;">
-      ✓ Submit Song Selections
+    <button class="btn btn-black" id="submitBtn" onclick="submitSelections()" style="font-size:0.95rem; padding:0.85rem 2rem;">
+      Submit Song Selections
     </button>
   </div>
-
 </main>
 
 <script>
-// ============================================================
-// CONFIGURATION — Update SHEET_ID if your sheet changes
-// ============================================================
-const SHEET_ID = '111kgT6cmIt7JM1pjhl0rMOi1YDNMOI4DwasE2idpkAE';
-const SONGS_TAB = 'Songs';
-const SELECTIONS_TAB = 'Selections';
+const SHEET_ID        = '111kgT6cmIt7JM1pjhl0rMOi1YDNMOI4DwasE2idpkAE';
+const SONGS_TAB       = 'Songs';
+const SELECTIONS_TAB  = 'Selections';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKsDqN01aAzuWgSqw7anxgPXbEREM38EFoXDU_hfXAcz6Rub--UMJ4eu67E-ulyddIzw/exec';
+const SHEET_URL       = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=`;
 
-// Google Sheets public JSON URL (no API key needed for public sheets)
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=`;
-
-// ============================================================
-// STATE
-// ============================================================
-let allSongs = [];       // [{title, lyrics}, ...]
+let allSongs      = [];
 let cachedOptions = '';
-let slotCount = 0;
-let searchMode = 'title'; // 'title' | 'lyric'
+let slotCount     = 0;
+let searchMode    = 'title';
 
-// ============================================================
-// INIT
-// ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-  setDefaultSundayDate();
+  setNextSunday();
   loadSongs();
-
-  // Search input handler
-  const searchInput = document.getElementById('searchInput');
-  searchInput.addEventListener('input', debounce(handleSearch, 200));
-  searchInput.addEventListener('blur', () => {
-    setTimeout(() => {
-      document.getElementById('searchResults').classList.remove('visible');
-    }, 200);
-  });
-  searchInput.addEventListener('focus', () => {
-    if (searchInput.value.trim().length >= 2) handleSearch();
-  });
+  const si = document.getElementById('searchInput');
+  si.addEventListener('input', debounce(handleSearch, 200));
+  si.addEventListener('blur', () => setTimeout(() => document.getElementById('searchResults').classList.remove('visible'), 200));
+  si.addEventListener('focus', () => { if (si.value.trim().length >= 2) handleSearch(); });
 });
 
-// ============================================================
-// DATE — Default to next Sunday
-// ============================================================
-function setDefaultSundayDate() {
+function setNextSunday() {
   const today = new Date();
-  const day = today.getDay(); // 0=Sun
-  const daysUntilSunday = day === 0 ? 7 : 7 - day;
-  const nextSunday = new Date(today);
-  nextSunday.setDate(today.getDate() + daysUntilSunday);
-  const yyyy = nextSunday.getFullYear();
-  const mm = String(nextSunday.getMonth() + 1).padStart(2, '0');
-  const dd = String(nextSunday.getDate()).padStart(2, '0');
-  document.getElementById('sundayDate').value = `${yyyy}-${mm}-${dd}`;
+  const days  = today.getDay() === 0 ? 7 : 7 - today.getDay();
+  const next  = new Date(today);
+  next.setDate(today.getDate() + days);
+  document.getElementById('sundayDate').value =
+    `${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
 }
 
-// ============================================================
-// LOAD SONGS from Google Sheet
-// ============================================================
 async function loadSongs() {
   setStatus('loading', 'Loading songs...');
-
-  // Show skeleton in slots container
   const container = document.getElementById('slotsContainer');
-  container.innerHTML = `
-    <div class="card">
-      <div class="skeleton"></div>
-      <div class="skeleton" style="width:70%"></div>
-      <div class="skeleton" style="width:85%"></div>
-    </div>`;
-
+  container.innerHTML = '<div class="card"><div class="skeleton"></div><div class="skeleton" style="width:70%"></div></div>';
   try {
-    const response = await fetch(SHEET_URL + encodeURIComponent(SONGS_TAB));
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const text = await response.text();
-    // Google wraps JSON in a callback — strip it
+    const res  = await fetch(SHEET_URL + encodeURIComponent(SONGS_TAB));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
     const json = JSON.parse(text.replace(/^.*?({.*}).*$/s, '$1'));
-    const rows = json.table.rows;
-
-    allSongs = rows
-      .filter(row => row.c && row.c[0] && row.c[0].v)
-      .map(row => ({
-        title: String(row.c[0].v).trim(),
-        lyrics: row.c[1] ? String(row.c[1].v).trim() : ''
-      }))
+    allSongs = json.table.rows
+      .filter(r => r.c && r.c[0] && r.c[0].v)
+      .map(r => ({ title: String(r.c[0].v).trim(), lyrics: r.c[1] ? String(r.c[1].v).trim() : '' }))
       .sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
-
-    cachedOptions = allSongs.map(s =>
-      `<option value="${escHtml(s.title)}">${escHtml(s.title)}</option>`
-    ).join('');
+    cachedOptions = allSongs.map(s => `<option value="${escHtml(s.title)}">${escHtml(s.title)}</option>`).join('');
     setStatus('ready', `${allSongs.length} songs loaded`);
     container.innerHTML = '';
-    addSongSlot(); // Start with one slot
-
+    addSongSlot();
   } catch (err) {
     console.error(err);
     setStatus('error', 'Failed to load songs');
-    container.innerHTML = `
-      <div class="error-msg">
-        ⚠️ Could not load songs from Google Sheets.<br><br>
-        <strong>Possible causes:</strong><br>
-        • The Google Sheet is not set to "Anyone with the link can view"<br>
-        • The Sheet ID in the app needs updating<br>
-        • Network connectivity issue<br><br>
-        Please check your Sheet sharing settings and refresh the page.
-      </div>`;
+    container.innerHTML = '<div class="error-msg">Could not load songs. Make sure the Google Sheet is set to "Anyone with the link can view" and refresh.</div>';
   }
 }
 
-// ============================================================
-// SONG SLOTS
-// ============================================================
 function addSongSlot(preselect = null) {
+  if (allSongs.length === 0) { showToast('Songs are still loading, please wait', 'error'); return; }
   slotCount++;
-  const id = slotCount;
-  const container = document.getElementById('slotsContainer');
-
-  if (allSongs.length === 0) {
-    // Songs not yet loaded — try again in 1 second
-    slotCount--;
-    setTimeout(() => addSongSlot(preselect), 1000);
-    return;
-  }
-
+  const id  = slotCount;
   const div = document.createElement('div');
   div.className = 'song-slot';
-  div.id = `slot-${id}`;
-
-  const options = cachedOptions;
-
+  div.id        = `slot-${id}`;
   div.innerHTML = `
     <div class="slot-header">
       <span class="slot-number">Song ${id}</span>
       <select class="slot-select" id="select-${id}" onchange="onSongSelected(${id})">
-        <option value="">— Choose a song —</option>
-        ${options}
+        <option value="">— Choose a song —</option>${cachedOptions}
       </select>
-      <button class="remove-btn" onclick="removeSlot(${id})" title="Remove">✕</button>
+      <button class="remove-btn" onclick="removeSlot(${id})">✕</button>
     </div>
     <div class="lyrics-area" id="lyrics-area-${id}">
-      <div class="lyrics-label">
-        <span>Lyrics</span>
-        <span class="edit-hint">✏️ Click to edit</span>
-      </div>
+      <div class="lyrics-label"><span>Lyrics</span><span class="edit-hint">Click to edit</span></div>
       <textarea class="lyrics-text" id="lyrics-${id}" spellcheck="true"></textarea>
     </div>`;
-
-  container.appendChild(div);
-
-  // Preselect if provided (from search click)
-  if (preselect) {
-    const sel = document.getElementById(`select-${id}`);
-    sel.value = preselect;
-    onSongSelected(id);
-  }
+  document.getElementById('slotsContainer').appendChild(div);
+  if (preselect) { const s = document.getElementById(`select-${id}`); s.value = preselect; onSongSelected(id); }
 }
 
 function removeSlot(id) {
-  const slot = document.getElementById(`slot-${id}`);
-  if (slot) {
-    slot.style.opacity = '0';
-    slot.style.transform = 'translateX(-10px)';
-    slot.style.transition = 'all 0.2s';
-    setTimeout(() => slot.remove(), 200);
-  }
+  const s = document.getElementById(`slot-${id}`);
+  if (s) s.remove();
 }
 
 function onSongSelected(id) {
-  const sel = document.getElementById(`select-${id}`);
-  const lyricsArea = document.getElementById(`lyrics-area-${id}`);
-  const lyricsText = document.getElementById(`lyrics-${id}`);
-
-  const title = sel.value;
-  if (!title) {
-    lyricsArea.classList.remove('visible');
-    return;
-  }
-
-  const song = allSongs.find(s => s.title === title);
-  if (song) {
-    lyricsText.value = song.lyrics;
-    lyricsArea.classList.add('visible');
-  }
+  const sel  = document.getElementById(`select-${id}`);
+  const area = document.getElementById(`lyrics-area-${id}`);
+  const ta   = document.getElementById(`lyrics-${id}`);
+  if (!sel.value) { area.classList.remove('visible'); return; }
+  const song = allSongs.find(s => s.title === sel.value);
+  if (song) { ta.value = song.lyrics; area.classList.add('visible'); }
 }
 
-// ============================================================
-// SEARCH
-// ============================================================
 function setSearchMode(mode) {
   searchMode = mode;
   document.getElementById('searchTitleBtn').classList.toggle('active', mode === 'title');
@@ -367,319 +259,135 @@ function setSearchMode(mode) {
 }
 
 function handleSearch() {
-  const query = document.getElementById('searchInput').value.trim().toLowerCase();
-  const resultsEl = document.getElementById('searchResults');
-
-  if (query.length < 2) {
-    resultsEl.classList.remove('visible');
-    return;
+  const q  = document.getElementById('searchInput').value.trim().toLowerCase();
+  const el = document.getElementById('searchResults');
+  if (q.length < 2) { el.classList.remove('visible'); return; }
+  const matches = allSongs.filter(s =>
+    searchMode === 'title' ? s.title.toLowerCase().includes(q)
+      : s.title.toLowerCase().includes(q) || s.lyrics.toLowerCase().includes(q)
+  );
+  if (!matches.length) {
+    el.innerHTML = '<div class="search-result-item"><span class="result-title" style="color:#666">No results found</span></div>';
+    el.classList.add('visible'); return;
   }
-
-  let matches;
-  if (searchMode === 'title') {
-    matches = allSongs.filter(s => s.title.toLowerCase().includes(query));
-  } else {
-    matches = allSongs.filter(s =>
-      s.title.toLowerCase().includes(query) ||
-      s.lyrics.toLowerCase().includes(query)
-    );
-  }
-
-  if (matches.length === 0) {
-    resultsEl.innerHTML = `<div class="search-result-item"><span class="result-title" style="color:var(--text-muted)">No results found</span></div>`;
-    resultsEl.classList.add('visible');
-    return;
-  }
-
-  resultsEl.innerHTML = matches.slice(0, 20).map(song => {
-    const highlightedTitle = highlight(song.title, query);
+  el.innerHTML = matches.slice(0, 20).map(song => {
     let snippet = '';
-    if (searchMode === 'lyric' && song.lyrics.toLowerCase().includes(query)) {
-      const idx = song.lyrics.toLowerCase().indexOf(query);
-      const start = Math.max(0, idx - 30);
-      const raw = song.lyrics.substring(start, idx + query.length + 40).replace(/\n/g, ' ');
-      snippet = highlight((start > 0 ? '...' : '') + raw + '...', query);
+    if (searchMode === 'lyric' && song.lyrics.toLowerCase().includes(q)) {
+      const idx = song.lyrics.toLowerCase().indexOf(q);
+      const st  = Math.max(0, idx - 30);
+      snippet   = highlight((st > 0 ? '...' : '') + song.lyrics.substring(st, idx + q.length + 40).replace(/\n/g,' ') + '...', q);
     }
-    return `
-      <div class="search-result-item" onmousedown="addSongFromSearch('${escJs(song.title)}')">
-        <div class="result-title">${highlightedTitle}</div>
-        ${snippet ? `<div class="result-snippet">${snippet}</div>` : ''}
-      </div>`;
+    return `<div class="search-result-item" onmousedown="addSongFromSearch('${escJs(song.title)}')">
+      <div class="result-title">${highlight(song.title, q)}</div>
+      ${snippet ? `<div class="result-snippet">${snippet}</div>` : ''}
+    </div>`;
   }).join('');
-
-  resultsEl.classList.add('visible');
+  el.classList.add('visible');
 }
 
 function addSongFromSearch(title) {
   document.getElementById('searchResults').classList.remove('visible');
   document.getElementById('searchInput').value = '';
-
-  // Check if already selected
-  const allSelects = document.querySelectorAll('.slot-select');
-  for (const sel of allSelects) {
-    if (sel.value === title) {
-      showToast(`"${title}" is already added`, 'error');
-      return;
-    }
-  }
-
-  // Find an empty slot first
-  for (const sel of allSelects) {
-    if (!sel.value) {
-      sel.value = title;
-      onSongSelected(parseInt(sel.id.replace('select-', '')));
-      return;
-    }
-  }
-
-  // Otherwise add a new slot
+  const sels = document.querySelectorAll('.slot-select');
+  for (const s of sels) { if (s.value === title) { showToast(`"${title}" already added`, 'error'); return; } }
+  for (const s of sels) { if (!s.value) { s.value = title; onSongSelected(parseInt(s.id.replace('select-',''))); return; } }
   addSongSlot(title);
 }
 
-function highlight(text, query) {
-  if (!query) return escHtml(text);
-  const regex = new RegExp(`(${escRegex(query)})`, 'gi');
-  return escHtml(text).replace(regex, '<mark>$1</mark>');
-}
-
-// ============================================================
-// ADD NEW SONG MODAL
-// ============================================================
-function openAddSongModal() {
-  document.getElementById('addSongModal').classList.add('open');
-  document.getElementById('newSongTitle').focus();
-}
-
-function closeAddSongModal() {
-  document.getElementById('addSongModal').classList.remove('open');
-  document.getElementById('newSongTitle').value = '';
-  document.getElementById('newSongLyrics').value = '';
-}
+function openAddSongModal()  { document.getElementById('addSongModal').classList.add('open'); document.getElementById('newSongTitle').focus(); }
+function closeAddSongModal() { document.getElementById('addSongModal').classList.remove('open'); document.getElementById('newSongTitle').value = ''; document.getElementById('newSongLyrics').value = ''; }
 
 async function saveNewSong() {
-  const title = document.getElementById('newSongTitle').value.trim();
+  const title  = document.getElementById('newSongTitle').value.trim();
   const lyrics = document.getElementById('newSongLyrics').value.trim();
-
-  if (!title || !lyrics) {
-    showToast('Please enter both a title and lyrics', 'error');
-    return;
-  }
-
-  // Check for duplicate
-  if (allSongs.find(s => s.title.toLowerCase() === title.toLowerCase())) {
-    showToast('A song with this title already exists', 'error');
-    return;
-  }
-
+  if (!title || !lyrics) { showToast('Please enter both a title and lyrics', 'error'); return; }
+  if (allSongs.find(s => s.title.toLowerCase() === title.toLowerCase())) { showToast('Song already exists', 'error'); return; }
   const btn = document.getElementById('saveNewSongBtn');
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-
+  btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    // Write to Google Sheet via Apps Script Web App
-    // NOTE: This requires deploying an Apps Script — see instructions below
-    await writeToSheet(SELECTIONS_TAB, null, title, lyrics, true);
-
-    // Add to local song list
+    await postToSheet({ action: 'addSong', title, lyrics });
     allSongs.push({ title, lyrics });
     allSongs.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
-
-    // Refresh all select dropdowns
-    refreshAllDropdowns();
-
+    cachedOptions = allSongs.map(s => `<option value="${escHtml(s.title)}">${escHtml(s.title)}</option>`).join('');
+    document.querySelectorAll('.slot-select').forEach(s => { const c = s.value; s.innerHTML = `<option value="">— Choose a song —</option>${cachedOptions}`; if (c) s.value = c; });
     closeAddSongModal();
-    showToast(`✓ "${title}" added to song library`, 'success');
-
-  } catch (err) {
-    showToast('Could not save song — see console for details', 'error');
-    console.error(err);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '💾 Save Song';
-  }
+    showToast(`"${title}" added to song library`);
+  } catch (e) { showToast('Could not save — please try again', 'error'); console.error(e); }
+  finally { btn.disabled = false; btn.textContent = 'Save Song'; }
 }
 
-function refreshAllDropdowns() {
-  cachedOptions = allSongs.map(s =>
-    `<option value="${escHtml(s.title)}">${escHtml(s.title)}</option>`
-  ).join('');
-  const options = cachedOptions;
-
-  document.querySelectorAll('.slot-select').forEach(sel => {
-    const current = sel.value;
-    sel.innerHTML = `<option value="">— Choose a song —</option>${options}`;
-    if (current) sel.value = current;
-  });
-}
-
-// ============================================================
-// SUBMIT SELECTIONS
-// ============================================================
 async function submitSelections() {
   const name = document.getElementById('memberName').value.trim();
   const date = document.getElementById('sundayDate').value;
+  document.getElementById('memberName').classList.toggle('error-field', !name);
+  document.getElementById('sundayDate').classList.toggle('error-field', !date);
+  if (!name || !date) { showToast('Please fill in your name and date', 'error'); return; }
 
-  // Validate
-  let valid = true;
-
-  if (!name) {
-    document.getElementById('memberName').classList.add('error-field');
-    valid = false;
-  } else {
-    document.getElementById('memberName').classList.remove('error-field');
-  }
-
-  if (!date) {
-    document.getElementById('sundayDate').classList.add('error-field');
-    valid = false;
-  } else {
-    document.getElementById('sundayDate').classList.remove('error-field');
-  }
-
-  // Collect song selections
   const selections = [];
-  document.querySelectorAll('.slot-select').forEach((sel, i) => {
-    if (sel.value) {
-      const slotId = sel.id.replace('select-', '');
-      const lyrics = document.getElementById(`lyrics-${slotId}`).value;
-      selections.push({ title: sel.value, lyrics });
-    }
+  document.querySelectorAll('.slot-select').forEach(s => {
+    if (s.value) selections.push({ title: s.value, lyrics: document.getElementById(`lyrics-${s.id.replace('select-','')}`).value });
   });
-
-  if (selections.length === 0) {
-    showToast('Please select at least one song', 'error');
-    valid = false;
-  }
-
-  if (!valid) {
-    showToast('Please fill in all required fields', 'error');
-    return;
-  }
+  if (!selections.length) { showToast('Please select at least one song', 'error'); return; }
 
   const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
+  btn.disabled = true; btn.textContent = 'Submitting...';
 
   try {
-    // Format date for display
-    const dateObj = new Date(date + 'T00:00:00');
-    const formattedDate = dateObj.toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
-
-    // Build row: Timestamp, Name, Date, Song1, Lyrics1, Song2, Lyrics2, ...
-    const timestamp = new Date().toLocaleString('en-US');
-    const rowData = [timestamp, name, formattedDate];
-    selections.forEach(s => {
-      rowData.push(s.title);
-      rowData.push(s.lyrics);
-    });
-
-    await writeToSheet(SELECTIONS_TAB, rowData);
-
-    showToast(`✓ Selections submitted! Thank you, ${name.split(' ')[0]}.`, 'success');
-
-    // Reset form for next user
+    const d   = new Date(date + 'T00:00:00');
+    const fmt = d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    const row = [new Date().toLocaleString('en-US'), name, fmt];
+    selections.forEach(s => { row.push(s.title); row.push(s.lyrics); });
+    await postToSheet({ action: 'addSelection', tab: SELECTIONS_TAB, row });
+    showToast(`Submitted! Thank you, ${name.split(' ')[0]}.`);
     setTimeout(() => {
       document.getElementById('memberName').value = '';
       document.getElementById('memberName').classList.remove('error-field');
       document.getElementById('sundayDate').classList.remove('error-field');
-      setDefaultSundayDate();
+      setNextSunday();
       document.getElementById('slotsContainer').innerHTML = '';
       slotCount = 0;
       addSongSlot();
-      // Re-enable button here, inside the reset, to ensure it's always re-enabled
-      btn.disabled = false;
-      btn.textContent = '✓ Submit Song Selections';
+      btn.disabled = false; btn.textContent = 'Submit Song Selections';
     }, 1500);
-
-  } catch (err) {
-    showToast('Submission failed — please try again', 'error');
-    console.error(err);
-    btn.disabled = false;
-    btn.textContent = '✓ Submit Song Selections';
-  }
-}
-
-// ============================================================
-// WRITE TO GOOGLE SHEET
-// Requires an Apps Script Web App deployment
-// Paste your deployed Web App URL below after deploying Code.gs
-// ============================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKsDqN01aAzuWgSqw7anxgPXbEREM38EFoXDU_hfXAcz6Rub--UMJ4eu67E-ulyddIzw/exec';
-
-async function writeToSheet(tab, rowData, newSongTitle = null, newSongLyrics = null, isNewSong = false) {
-  if (!APPS_SCRIPT_URL) {
-    throw new Error('Apps Script URL is empty. Please set it in index.html.');
-  }
-
-  const payload = isNewSong
-    ? { action: 'addSong', title: newSongTitle, lyrics: newSongLyrics }
-    : { action: 'addSelection', tab, row: rowData };
-
-  // Google Apps Script redirects POST to a new URL.
-  // We must use no-cors mode OR use a form-encoded GET workaround.
-  // Most reliable cross-origin approach: encode payload as a URL param on a GET request.
-  // Apps Script doGet() handles this and avoids all CORS/redirect issues.
-  const url = APPS_SCRIPT_URL + '?payload=' + encodeURIComponent(JSON.stringify(payload));
-
-  const response = await fetch(url, {
-    method: 'GET',
-    redirect: 'follow'
-  });
-
-  if (!response.ok) throw new Error(`Script error: ${response.status}`);
-
-  let result;
-  try {
-    const text = await response.text();
-    result = JSON.parse(text);
   } catch (e) {
-    throw new Error('Invalid response from Apps Script. Check your deployment.');
+    showToast('Submission failed — please try again', 'error');
+    console.error(e);
+    btn.disabled = false; btn.textContent = 'Submit Song Selections';
   }
-
-  if (result.status !== 'ok') throw new Error(result.message || 'Unknown error from Apps Script');
 }
 
-// ============================================================
-// UTILITIES
-// ============================================================
-function setStatus(state, text) {
-  const dot = document.getElementById('statusDot');
-  const label = document.getElementById('statusText');
-  dot.className = `status-dot ${state}`;
-  label.textContent = text;
+function postToSheet(payload) {
+  return new Promise(resolve => {
+    const name   = 'gs_' + Date.now();
+    const iframe = document.createElement('iframe');
+    iframe.name  = name; iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    const form   = document.createElement('form');
+    form.method  = 'POST'; form.action = APPS_SCRIPT_URL; form.target = name; form.style.display = 'none';
+    const input  = document.createElement('input');
+    input.type   = 'hidden'; input.name = 'payload'; input.value = JSON.stringify(payload);
+    form.appendChild(input); document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => {
+      try { document.body.removeChild(form); } catch(e) {}
+      try { document.body.removeChild(iframe); } catch(e) {}
+      resolve();
+    }, 1000);
+  });
 }
 
+function setStatus(s, t) { document.getElementById('statusDot').className = `status-dot ${s}`; document.getElementById('statusText').textContent = t; }
 let toastTimer;
-function showToast(msg, type = 'success') {
+function showToast(msg, type='success') {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `toast show ${type === 'error' ? 'error-toast' : 'success'}`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  el.textContent = msg; el.className = `toast show${type==='error'?' error-toast':''}`;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
-
-function debounce(fn, ms) {
-  let t;
-  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-}
-
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function escJs(str) {
-  return String(str).replace(/'/g, "\\'").replace(/\\/g, '\\\\');
-}
-
-function escRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escJs(s)   { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function highlight(text, q) { if (!q) return escHtml(text); return escHtml(text).replace(new RegExp(`(${escRegex(q)})`,'gi'),'<mark>$1</mark>'); }
 </script>
 </body>
 </html>
