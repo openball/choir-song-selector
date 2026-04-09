@@ -1072,30 +1072,41 @@ async function submitSelections() {
 // ============================================================
 // WRITE TO GOOGLE SHEET
 // Requires an Apps Script Web App deployment
-// See SETUP INSTRUCTIONS in README
+// Paste your deployed Web App URL below after deploying Code.gs
 // ============================================================
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzmkh5qyeaL3ok4Y4MdsDvs09GA4DLkuTi1U1aUSjTp6WLkHnGrH-Rza3ztVNWafWh/exec';
 
 async function writeToSheet(tab, rowData, newSongTitle = null, newSongLyrics = null, isNewSong = false) {
   if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyzmkh5qyeaL3ok4Y4MdsDvs09GA4DLkuTi1U1aUSjTp6WLkHnGrH-Rza3ztVNWafWh/exec') {
-    // Demo mode — log to console but don't fail
-    console.log('📝 [Demo Mode] Would write to sheet:', { tab, rowData, newSongTitle });
-    return;
+    throw new Error('Apps Script URL not configured. Please paste your Web App URL into index.html (search for APPS_SCRIPT_URL).');
   }
 
   const payload = isNewSong
     ? { action: 'addSong', title: newSongTitle, lyrics: newSongLyrics }
     : { action: 'addSelection', tab, row: rowData };
 
-  const response = await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-    headers: { 'Content-Type': 'text/plain' } // Avoids CORS preflight
+  // Google Apps Script redirects POST to a new URL.
+  // We must use no-cors mode OR use a form-encoded GET workaround.
+  // Most reliable cross-origin approach: encode payload as a URL param on a GET request.
+  // Apps Script doGet() handles this and avoids all CORS/redirect issues.
+  const url = APPS_SCRIPT_URL + '?payload=' + encodeURIComponent(JSON.stringify(payload));
+
+  const response = await fetch(url, {
+    method: 'GET',
+    redirect: 'follow'
   });
 
   if (!response.ok) throw new Error(`Script error: ${response.status}`);
-  const result = await response.json();
-  if (result.status !== 'ok') throw new Error(result.message || 'Unknown error');
+
+  let result;
+  try {
+    const text = await response.text();
+    result = JSON.parse(text);
+  } catch (e) {
+    throw new Error('Invalid response from Apps Script. Check your deployment.');
+  }
+
+  if (result.status !== 'ok') throw new Error(result.message || 'Unknown error from Apps Script');
 }
 
 // ============================================================
