@@ -139,7 +139,7 @@ function loadAllSelections() {
       return res.text();
     })
     .then(function(text) {
-      var json = JSON.parse(text.replace(/^.*?({.*}).*$/s, '$1'));
+      var start = text.indexOf('{'); var end = text.lastIndexOf('}') + 1; var json = JSON.parse(text.substring(start, end));
       if (!json.table || !json.table.rows) {
         document.getElementById('resultsArea').innerHTML = '<div class="state-msg">No submissions yet.</div>';
         return;
@@ -198,14 +198,14 @@ function loadForDate(dateStr) {
   currentDate    = dateStr;
   canonicalSongs = {};
 
+  var altDateStr = '';
+  if (dateStr.length === 10 && dateStr.charAt(4) === '-') {
+    var d2 = new Date(dateStr + 'T00:00:00');
+    altDateStr = d2.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  }
   var matches = allSelections.filter(function(s) {
     if (!s.sunday) return false;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      var d   = new Date(dateStr + 'T00:00:00');
-      var fmt = d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-      return s.sunday === fmt || s.sunday === dateStr;
-    }
-    return s.sunday === dateStr;
+    return s.sunday === dateStr || (altDateStr && s.sunday === altDateStr);
   });
 
   document.querySelectorAll('.date-tab').forEach(function(t) {
